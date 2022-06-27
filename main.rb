@@ -29,10 +29,8 @@ module GameLogic
       end
     end 
     current_guess.delete("+") 
-    current_guess.uniq!
-    ltrs_to_add = current_guess - ltrs_guessed
-    ltrs_guessed << ltrs_to_add
-    ltrs_guessed
+    ltrs_guessed << (current_guess - ltrs_guessed)
+    ltrs_guessed.flatten!.uniq!
     puts "Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
   end
 
@@ -71,7 +69,7 @@ class Game
     turn = 6
     while turn > 0
       puts "----#{turn} turns left----"
-      current_guess = HumanPlayer.make_guess
+      current_guess = HumanPlayer.make_guess(@secret_word)
       update_word_progress(@secret_word, current_guess, @word_progress)
       if won?(@secret_word, @word_progress, @player, turn)
         then break
@@ -99,14 +97,14 @@ class HumanPlayer
     name
   end
 
-  def self.make_guess
+  def self.make_guess(secret_word)
     loop do
-      puts "Please guess a 5-12 letter word."
+      puts "Please guess a #{secret_word.length} letter word."
       current_guess = gets.chomp.downcase
-        if current_guess.length > 4 && current_guess.length < 13
+        if current_guess.length == secret_word.length
           return current_guess = Array(current_guess.split('') )     
         else
-          puts "That's not the right amount of letters."
+          puts "That's not the right amount of letters. Please guess a #{secret_word.length} letter word."
         end 
     end
        
