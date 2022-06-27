@@ -1,3 +1,5 @@
+require 'yaml'
+
 module Display
 
   def populate_dictionary
@@ -48,13 +50,51 @@ module GameLogic
   end
 end
 
+module SavedGames
+
+  def save_game(game)
+    puts "...saving game..."
+    Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
+    Dir.chdir 'saved_games'
+    filename = "game#{Dir.glob('../saved_games/*').length+1}.yaml"
+
+    File.open(filename, 'w') {|file| YAML.dump([] << game, file)}
+    puts "Game saved. Thanks for playing"
+  end
+
+  def choose_saved_game
+    puts "Which game would you like to play?"
+    puts "#{Dir.glob('./saved_games/*').join(",\n")}"
+    input = gets.chomp
+    load_game(input)
+  end
+
+  def load_game(filename)
+    begin
+      yaml = YAML.load_file("#{filename}")
+      puts yaml.inspect
+    rescue 
+      puts "There's no such file."
+    end
+  end
+
+end
+
 class Game
   include Display
   include GameLogic
+  include SavedGames
   attr_reader :player, :secret_word
   attr_accessor :ltrs_guessed, :word_progress
 
   def initialize
+    if Dir.glob('saved_games/*').length > 0
+      puts "Would you like to play from a saved game? Y or N"
+      answer = gets.chomp.upcase
+      if answer == "Y"
+        choose_saved_game()
+      end
+    end    
     @ltrs_guessed = []
     @player = HumanPlayer.new
     puts "The player is #{@player}"
@@ -68,8 +108,12 @@ class Game
   def play
     turn = 6
     while turn > 0
-      puts "----#{turn} turns left----"
+      puts "----#{turn} turns left---- If you'd like to save this game enter 'S'."
       current_guess = HumanPlayer.make_guess(@secret_word)
+      if current_guess == 's'
+        save_game(self)
+        break
+      end  
       update_word_progress(@secret_word, current_guess, @word_progress)
       if won?(@secret_word, @word_progress, @player, turn)
         then break
@@ -102,7 +146,9 @@ class HumanPlayer
       puts "Please guess a #{secret_word.length} letter word."
       current_guess = gets.chomp.downcase
         if current_guess.length == secret_word.length
-          return current_guess = Array(current_guess.split('') )     
+          return current_guess = Array(current_guess.split('') )  
+        elsif current_guess == 's'
+          return current_guess     
         else
           puts "That's not the right amount of letters. Please guess a #{secret_word.length} letter word."
         end 
