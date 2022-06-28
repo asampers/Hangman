@@ -55,27 +55,29 @@ module SavedGames
   def save_game(game)
     puts "...saving game..."
     Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
-    Dir.chdir 'saved_games'
-    filename = "game#{Dir.glob('../saved_games/*').length+1}.yaml"
+    filename = "saved_games/game#{Dir.glob('../saved_games/*').length+1}.yml"
 
-    File.open(filename, 'w') {|file| YAML.dump([] << game, file)}
+    File.open(filename, 'w') {|file| file.puts YAML.dump(game)}
     puts "Game saved. Thanks for playing"
   end
 
   def choose_saved_game
     puts "Which game would you like to play?"
-    puts "#{Dir.glob('./saved_games/*').join(",\n")}"
+    puts "#{Dir.glob('*/*.yml').join(",\n")}"
     input = gets.chomp
     load_game(input)
   end
 
   def load_game(filename)
-    begin
-      yaml = YAML.load_file("#{filename}")
-      puts yaml.inspect
-    rescue 
-      puts "There's no such file."
-    end
+    file = File.open("#{filename}", "r")
+    data = file.read
+    f = YAML::safe_load(data, permitted_classes: [Game, HumanPlayer])
+    puts "Welcome back #{f.player}."
+    @secret_word = f.secret_word
+    @ltrs_guessed = f.ltrs_guessed
+    @player = f.player
+    @word_progress = f.word_progress
+    @turn = f.turn
   end
 
 end
@@ -85,7 +87,7 @@ class Game
   include GameLogic
   include SavedGames
   attr_reader :player, :secret_word
-  attr_accessor :ltrs_guessed, :word_progress
+  attr_accessor :ltrs_guessed, :word_progress, :turn
 
   def initialize
     if Dir.glob('saved_games/*').length > 0
@@ -93,34 +95,36 @@ class Game
       answer = gets.chomp.upcase
       if answer == "Y"
         choose_saved_game()
+        play()
+        return
       end
-    end    
+    end 
     @ltrs_guessed = []
     @player = HumanPlayer.new
+    @turn = 6
     puts "The player is #{@player}"
     @secret_word = populate_dictionary.split("")
     puts "The Secret word is #{@secret_word}"
     @word_progress = Array.new(@secret_word.length, " __ ")
     puts "The secret word is #{@secret_word.length} letters long."
-    puts "#{@word_progress.join}\n"
+    puts "#{@word_progress.join}\n"    
   end
 
   def play
-    turn = 6
-    while turn > 0
-      puts "----#{turn} turns left---- If you'd like to save this game enter 'S'."
+    while @turn != 0
+      puts "----#{@turn} turns left---- If you'd like to save this game enter 'S'."
       current_guess = HumanPlayer.make_guess(@secret_word)
       if current_guess == 's'
         save_game(self)
         break
       end  
       update_word_progress(@secret_word, current_guess, @word_progress)
-      if won?(@secret_word, @word_progress, @player, turn)
+      if won?(@secret_word, @word_progress, @player, @turn)
         then break
       end  
       update_ltrs_guessed(@secret_word, current_guess, @ltrs_guessed)
-      turn -= 1
-      if turn == 0
+      @turn -= 1
+      if @turn == 0
         lost(@secret_word, @player)
       end  
     end 
