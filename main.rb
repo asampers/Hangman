@@ -15,9 +15,8 @@ end
 module GameLogic
   def update_word_progress(secret_word, current_guess, word_progress)
     secret_word.each_with_index do |ltr, i|
-      if current_guess[i] == secret_word[i]
-        word_progress[i] = "#{ltr} "
-        current_guess[i] = "+"
+      if ltr == current_guess
+        word_progress[i] = current_guess
       end
     end 
     puts "Game progress: #{word_progress.join}"
@@ -25,14 +24,9 @@ module GameLogic
   end
 
   def update_ltrs_guessed(secret_word, current_guess, ltrs_guessed)
-    current_guess.each_with_index.map do |ltr, i|
-      if secret_word.include?(current_guess[i])
-        current_guess[i] = "+"
-      end
+    if !(secret_word.include?(current_guess))
+      ltrs_guessed << current_guess
     end 
-    current_guess.delete("+") 
-    ltrs_guessed << (current_guess - ltrs_guessed)
-    ltrs_guessed.flatten!.uniq!
     puts "Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
   end
 
@@ -112,9 +106,9 @@ class Game
 
   def play
     while @turn != 0
-      puts "----#{@turn} turns left---- If you'd like to save this game enter 'S'."
-      current_guess = HumanPlayer.make_guess(@secret_word)
-      if current_guess == 's'
+      puts "----#{@turn} turns left---- If you'd like to save this game enter 'Save'."
+      current_guess = HumanPlayer.make_guess(@ltrs_guessed, @word_progress)
+      if current_guess == 'save'
         save_game(self)
         break
       end  
@@ -145,16 +139,18 @@ class HumanPlayer
     name
   end
 
-  def self.make_guess(secret_word)
+  def self.make_guess(ltrs_guessed, word_progress)
     loop do
-      puts "Please guess a #{secret_word.length} letter word."
+      puts "Please guess a letter."
       current_guess = gets.chomp.downcase
-        if current_guess.length == secret_word.length
-          return current_guess = Array(current_guess.split('') )  
-        elsif current_guess == 's'
-          return current_guess     
+        if current_guess == 'save'
+          return current_guess 
+        elsif ltrs_guessed.include?(current_guess) || word_progress.include?(current_guess)      
+          puts "You've already guessed that letter."
+        elsif current_guess.length > 1 || current_guess.count('a-z').zero?
+          puts "Incorrect input. Please try again."
         else
-          puts "That's not the right amount of letters. Please guess a #{secret_word.length} letter word."
+          return current_guess  
         end 
     end
        
