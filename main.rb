@@ -16,7 +16,7 @@ module GameLogic
   def update_word_progress(secret_word, current_guess, word_progress)
     secret_word.each_with_index do |ltr, i|
       if ltr == current_guess
-        word_progress[i] = current_guess
+        word_progress[i] = "#{current_guess} "
       end
     end 
     puts "Game progress: #{word_progress.join}"
@@ -26,8 +26,10 @@ module GameLogic
   def update_ltrs_guessed(secret_word, current_guess, ltrs_guessed)
     if !(secret_word.include?(current_guess))
       ltrs_guessed << current_guess
-    end 
-    puts "Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
+      puts"Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
+      return true
+    end
+    puts"Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
   end
 
   def won?(secret_word, word_progress, player, turn)
@@ -116,13 +118,14 @@ class Game
       if won?(@secret_word, @word_progress, @player, @turn)
         then break
       end  
-      update_ltrs_guessed(@secret_word, current_guess, @ltrs_guessed)
-      @turn -= 1
+      if update_ltrs_guessed(@secret_word, current_guess, @ltrs_guessed) == true
+        @turn -=1
+      end  
       if @turn == 0
         lost(@secret_word, @player)
+        break
       end  
-    end 
-    
+    end  
   end
 
 end  
@@ -145,7 +148,7 @@ class HumanPlayer
       current_guess = gets.chomp.downcase
         if current_guess == 'save'
           return current_guess 
-        elsif ltrs_guessed.include?(current_guess) || word_progress.include?(current_guess)      
+        elsif ltrs_guessed.include?(current_guess) || word_progress.include?(current_guess)  
           puts "You've already guessed that letter."
         elsif current_guess.length > 1 || current_guess.count('a-z').zero?
           puts "Incorrect input. Please try again."
