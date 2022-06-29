@@ -123,6 +123,7 @@ class Game
       end  
       update_word_progress(@secret_word, current_guess, @word_progress)
       if won?(@secret_word, @word_progress, @player) == true
+        play_again()
         break
       end  
       if update_ltrs_guessed(@secret_word, current_guess, @ltrs_guessed) == true
@@ -130,12 +131,27 @@ class Game
       end  
       if @turn == 0
         lost(@secret_word, @player)
+        play_again()
         break
       end  
     end  
   end
 
-  
+  def play_again
+    loop do
+      puts "Would you like to play again? Y or N"
+      answer = gets.chomp.downcase
+        if answer == "y"
+          return Game.new.play
+        elsif answer == "n" 
+          puts "That's okay. Have a great summer!"
+          return
+        else 
+          puts "I don't understand." 
+        end
+    end       
+
+  end
 
 end  
 

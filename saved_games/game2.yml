@@ -1,22 +1,21 @@
 --- !ruby/object:Game
 ltrs_guessed:
 - v
-- b
-- d
+- q
+- u
+- t
 player: !ruby/object:HumanPlayer
   name: Anna
-turn: 3
+turn: 2
 secret_word:
-- f
-- e
-- t
-- i
+- g
+- r
+- o
+- w
 - s
-- h
 word_progress:
-- 'f '
-- 'e '
-- 't '
+- 'g '
 - " __ "
 - " __ "
-- 'h '
+- 'w '
+- " __ "
