@@ -60,7 +60,9 @@ module SavedGames
   def save_game(game)
     puts "...saving game..."
     Dir.mkdir('saved_games') unless Dir.exist?('saved_games')
-    filename = "saved_games/game#{Dir.glob('./saved_games/*').length+1}.yml"
+    puts "What would you like to name your saved game?"
+    answer = gets.chomp 
+    filename = "saved_games/#{answer}.yml"
 
     File.open(filename, 'w') {|file| file.puts YAML.dump(game)}
     puts "Game saved. Thanks for playing"
@@ -69,7 +71,7 @@ module SavedGames
   def choose_saved_game
     puts "Which game would you like to play?"
     puts "#{Dir.glob('*/*.yml').map{ |s| File.basename(s, ".yml")}.join(",\n")}"
-    input = gets.chomp
+    input = gets.chomp.downcase
     load_game(input)
   end
 
@@ -104,9 +106,8 @@ class Game
         @ltrs_guessed = []
         @player = HumanPlayer.new
         @turn = 6
-        puts "The player is #{@player}"
+        puts "Welcome, #{@player}."
         @secret_word = populate_dictionary.split("")
-        puts "The Secret word is #{@secret_word}"
         @word_progress = Array.new(@secret_word.length, " __ ")
         puts "The secret word is #{@secret_word.length} letters long."
         puts "#{@word_progress.join}\n"  
