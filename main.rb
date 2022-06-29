@@ -59,13 +59,13 @@ module SavedGames
 
   def choose_saved_game
     puts "Which game would you like to play?"
-    puts "#{Dir.glob('*/*.yml').join(",\n")}"
+    puts "#{Dir.glob('*/*.yml').map{ |s| File.basename(s, ".yml")}.join(",\n")}"
     input = gets.chomp
     load_game(input)
   end
 
   def load_game(filename)
-    file = File.open("#{filename}", "r")
+    file = File.open("saved_games/#{filename}.yml", "r")
     data = file.read
     f = YAML::safe_load(data, permitted_classes: [Game, HumanPlayer])
     puts "Welcome back #{f.player}."
@@ -76,7 +76,7 @@ module SavedGames
     @turn = f.turn
     puts "#{@word_progress.join}"
     puts "Incorrect letters: #{@ltrs_guessed.join}"
-    File.delete("#{filename}")
+    File.delete("saved_games/#{filename}.yml")
   end
 
 end
