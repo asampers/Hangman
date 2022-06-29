@@ -32,12 +32,11 @@ module GameLogic
     puts"Incorrect letters: #{ltrs_guessed.join.to_s.upcase}"
   end
 
-  def won?(secret_word, word_progress, player, turn)
+  def won?(secret_word, word_progress, player)
     if secret_word.join == word_progress.join.delete(" ")
       puts "Secret word: #{secret_word.join}"
       puts "Congratulations, #{player}! You guessed correctly!"
-      turn -= 6
-      return turn
+      return true
     end 
   end  
 
@@ -47,6 +46,16 @@ module GameLogic
 end
 
 module SavedGames
+
+  def play_from_saved_game
+    if Dir.glob('saved_games/*').length > 0
+      puts "Would you like to play from a saved game? Y or N"
+      answer = gets.chomp.upcase
+      if answer == "Y"
+        choose_saved_game()
+      end
+    end
+  end  
 
   def save_game(game)
     puts "...saving game..."
@@ -89,27 +98,23 @@ class Game
   attr_accessor :ltrs_guessed, :word_progress, :turn
 
   def initialize
-    if Dir.glob('saved_games/*').length > 0
-      puts "Would you like to play from a saved game? Y or N"
-      answer = gets.chomp.upcase
-      if answer == "Y"
-        choose_saved_game()
-        return play()
-      end
-    end 
-    @ltrs_guessed = []
-    @player = HumanPlayer.new
-    @turn = 6
-    puts "The player is #{@player}"
-    @secret_word = populate_dictionary.split("")
-    puts "The Secret word is #{@secret_word}"
-    @word_progress = Array.new(@secret_word.length, " __ ")
-    puts "The secret word is #{@secret_word.length} letters long."
-    puts "#{@word_progress.join}\n"    
+      if play_from_saved_game()
+        return
+      else  
+        @ltrs_guessed = []
+        @player = HumanPlayer.new
+        @turn = 6
+        puts "The player is #{@player}"
+        @secret_word = populate_dictionary.split("")
+        puts "The Secret word is #{@secret_word}"
+        @word_progress = Array.new(@secret_word.length, " __ ")
+        puts "The secret word is #{@secret_word.length} letters long."
+        puts "#{@word_progress.join}\n"  
+      end  
   end
 
   def play
-    while @turn != 0
+    loop do
       puts "----#{@turn} turns left---- If you'd like to save this game enter 'Save'."
       current_guess = HumanPlayer.make_guess(@ltrs_guessed)
       if current_guess == 'save'
@@ -117,7 +122,7 @@ class Game
         break
       end  
       update_word_progress(@secret_word, current_guess, @word_progress)
-      if won?(@secret_word, @word_progress, @player, @turn)
+      if won?(@secret_word, @word_progress, @player) == true
         break
       end  
       if update_ltrs_guessed(@secret_word, current_guess, @ltrs_guessed) == true
@@ -129,6 +134,8 @@ class Game
       end  
     end  
   end
+
+  
 
 end  
 
